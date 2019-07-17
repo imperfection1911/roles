@@ -1,0 +1,57 @@
+---
+ - name: create developers group
+   group:
+     name: developers
+     state: present
+ 
+ - name: add docker group
+   group:
+     name: docker
+     state: present
+     gid: 993
+
+ - name: add users
+   user:
+     name: "{{ item.key }}"
+     groups: "{{ item.value.groups }}"
+     uid: "{{ item.value.uid }}"
+     state: present
+   with_dict: "{{ users }}"
+
+ - name: add public keys
+   authorized_key:
+     user: "{{ item.key }}"
+     state: present
+     key: "{{ lookup('file', '{{ item.value.key }}') }}"
+   with_dict: "{{ users }}"
+
+ - name: make sudo passwordless for wheel
+   lineinfile:
+     dest: /etc/sudoers
+     state: present
+     regexp: '^%wheel'
+     line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+     validate: '/usr/sbin/visudo -cf %s'
+ 
+ - name: create developers command alias
+   lineinfile:
+     dest: /etc/sudoers
+     state: present
+     line: 'Cmnd_Alias DEV_COMMAND = /usr/sbin/tcpdump'
+     validate: '/usr/sbin/visudo -cf %s'
+
+ - name: allow developers execute commands with sudo
+   lineinfile:
+     dest: /etc/sudoers
+     state: present
+     line: '%developers ALL=(ALL)   NOPASSWD: DEV_COMMAND'
+     validate: '/usr/sbin/visudo -cf %s'
+
+ - name: disable password authentication
+   lineinfile:
+     dest: /etc/ssh/sshd_config
+     state: present
+     regexp: '^PasswordAuthentication yes'
+     line: 'PasswordAuthentication no'
+     backrefs: yes
+   notify: restart ssh

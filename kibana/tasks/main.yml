@@ -1,0 +1,16 @@
+---
+ - name: run kibana
+   docker_container:
+     name: kibana
+     image: docker.elastic.co/kibana/kibana:6.6.2
+     networks:
+       - name: elk
+     published_ports:
+       - 5601:5601
+     env:
+       SERVER_NAME: kibana
+       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+       XPACK_MONITORING_ENBLED: false
+     user: root 
+     
+     

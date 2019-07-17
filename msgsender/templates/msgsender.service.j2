@@ -1,0 +1,9 @@
+[Unit]
+Description=msgsender service
+
+[Service]
+Type=simple
+User=application
+EnvironmentFile=/etc/sysconfig/msgsender
+ExecStart=/bin/java -javaagent:/opt/services/jmx_prometheus_javaagent-0.3.1.jar={{ jmx_exporter_port }}:/etc/msgsender_javaagent.yml -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port={{ jmx_port }} -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar /opt/services/{{ msgsender }} --spring.profiles.active={{ msgsender_mode }}
+ExecStop=/bin/kill ${MAINPID}

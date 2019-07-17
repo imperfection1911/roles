@@ -1,0 +1,29 @@
+---
+ - hosts: redis_master
+   user: gitlab-runner
+   become: yes
+   become_user: root
+   vars: 
+     # настройки без докера
+     #listen_address: 192.168.11.104
+     #replication_role: master
+     #dump_dir: /var/lib/redis/
+     # в докере
+     run_in_docker: 1
+     replication_role: master
+   roles: 
+     - redis
+
+ - hosts: redis_slave
+   user: root
+   become: yes
+   vars:
+     # listen_address: 192.168.11.101
+     run_in_docker: 1
+     replication_role: slave
+     master_ip: 10.53.53.88 
+     master_port: 6379
+     slave_ip: 10.53.5387
+     slave_port: 6379
+   roles:
+     - redis

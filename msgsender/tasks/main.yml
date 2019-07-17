@@ -1,0 +1,96 @@
+---
+ - name: copy jar
+   copy:
+     src: "{{ msgsender }}"
+     dest: /opt/services/{{ msgsender }}
+     owner: application
+     group: application
+     mode: 0754
+ 
+ - name: copy javaagent config
+   template:
+     src: javaagent.yml.j2
+     dest: /etc/msgsender_javaagent.yml
+ 
+ - name: copy msgsender environment file
+   template:
+     src: msgsender.j2
+     dest: /etc/sysconfig/msgsender
+
+ - name: create msgsender service unit
+   template:
+     src: msgsender.service.j2
+     dest: /etc/systemd/system/multi-user.target.wants/msgsender.service
+ 
+ - name: check registry
+   uri:
+     url: http://{{ registry_host }}:{{ registry_port }}/actuator/health
+     method: GET
+     return_content: yes
+     status_code: 200
+     body_format: json
+     timeout: 60
+   register: result
+   until: result.status == 200 and result.json.status == "UP"
+   retries: 30
+   delay: 5
+  
+ - name: check config
+   uri:
+     url: http://{{ config_host }}:{{ config_port }}/actuator/health
+     method: GET
+     return_content: yes
+     status_code: 200
+     body_format: json
+     timeout: 60
+   register: result
+   until: result.status == 200 and result.json.status == "UP"
+   retries: 30
+   delay: 10
+ 
+ - name: start msgsender unit
+   systemd:
+     daemon_reload: yes
+     name: msgsender
+     state: restarted
+
+ - name: stop msgsender unit
+   systemd:
+     name: msgsender
+     state: stopped
+   tags:
+     - uninstall
+
+ - name: remove jar
+   file:
+     path: /opt/services/{{ msgsender }}
+     state: absent
+   tags:
+     - uninstall
+
+ - name: remove environment
+   file:
+     path: /etc/sysconfig/msgsender
+     state: absent
+   tags:
+     - uninstall
+
+ - name: remove unit
+   file:
+     path: /etc/systemd/system/multi-user.target.wants/msgsender.service
+     state: absent
+   tags:
+     - uninstall
+
+ - name: remove jmx_exporter config
+   file:
+     path: /etc/msggsender_javaagent.yml
+     state: absent
+   tags:
+     - uninstall
+ 
+ - name: daemon reload
+   systemd:
+     daemon_reload: yes
+   tags:
+     - uninstall

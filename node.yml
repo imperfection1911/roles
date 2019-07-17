@@ -1,0 +1,13 @@
+---
+ - hosts: test
+   user: gitlab-runner
+   become: yes
+   become_user: root
+   vars:
+     registry_url: 10.53.53.102:4567
+   roles:
+     - users
+     - packages
+     - ansible-role-docker-master
+     - docker-log-rotate
+     - docker-insecure-registry

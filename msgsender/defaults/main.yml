@@ -1,0 +1,15 @@
+---
+msgsender: msgsender-1.0.0-RELEASE.jar
+registry_host: "{{ ansible_default_ipv4.address }}"
+registry_port: 8761
+config_host: "{{ ansible_default_ipv4.address }}"
+config_port: 8888
+instance_ip: "{{ ansible_default_ipv4.address }}"
+jmx_port: 8008
+jmx_exporter_port: 8383
+msa_port: 9350
+msa_discovery_port: "{{ registry_port }}"
+msa_peer_instance_ip: 10.28.101.25
+msa_peer_port: 8761
+msgsender_mode: ha
+#msgsender_mode: single

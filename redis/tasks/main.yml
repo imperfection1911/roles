@@ -1,0 +1,94 @@
+---
+ # в офф мане рекомендуется выставить на 1. Настройка отвечает за аллокацию больших объемов озу. в режиме 1 ядро не обрабатывает перерасход памяти, благодаря чем производительность приложения, активно использующего память(redis) должна вырасти.
+ - name: set overcommit memory
+   sysctl:
+     name: vm.overcommit_memory
+     value: 1
+   #when: run_in_docker == 0
+ 
+ # выключить transparent_hugepage
+# - name: install sysfsutils
+#   yum:
+#     name: sysfsutils
+#     state: installed
+   #when: run_in_docker == 0
+
+# - name: edit sysfs.conf
+#   lineinfile:
+#     dest: /etc/sysfs.conf
+#     state: present
+#     line: '/kernel/mm/transparent_hugepage/enabled = never'
+#     create: yes
+#   notify: 
+#     - reboot
+   #when: run_in_docker == 0
+
+ - name: disable transparent_hugepages
+   shell: 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'
+ 
+ - name: disable transparent_hugepages forever
+   lineinfile:
+     dest: /etc/rc.local
+     state: present
+     line: 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'
+     create: yes
+
+ - name: install redis
+   yum:
+     name: redis
+     state: installed
+   when: run_in_docker == 0
+
+ - name: create config dir for redis
+   file:
+     path: /etc/redis
+     state: directory
+     owner: root
+     group: root
+     mode: 0775
+   when: run_in_docker == 1
+
+ - name: set redis config path for docker
+   set_fact: config_path=/etc/redis/redis.conf
+   when: run_in_docker == 1 
+
+ - name: set redis config path
+   set_fact: config_path=/etc/redis.conf
+   when: run_in_docker == 0
+
+ - name: configure redis
+   template:
+     src: redis.conf.j2
+     dest: "{{ config_path }}"
+ 
+ - name:  create persistent volume fo redis
+   docker_volume:
+     name: redis
+   when: run_in_docker == 1
+
+ - name: set redis container name when replication_role is not defined
+   set_fact: container_name='standalone'
+   when: replicaton_role is not defined
+
+ - name: set redis containe name when replication_role is defined
+   set_fact: container_name="{{ replication_role }}"
+   when: replication_role is defined
+ 
+ - debug:
+     var: maxmemory
+
+ - debug:
+     var: ansible_memtotal_mb
+
+ - name: deploy redis container
+   docker_container:
+     name: redis_{{ container_name }}
+     image: redis
+     command: redis-server /usr/local/etc/redis/redis.conf 
+     memory: "{{ maxmemory }}B"
+     volumes:
+       - redis:/data
+       - /etc/redis/redis.conf:/usr/local/etc/redis/redis.conf
+     published_ports:
+       - 6379:6379
+   when: run_in_docker == 1

@@ -1,0 +1,14 @@
+---
+ - name: add insecure registry option
+   lineinfile:
+     path: /etc/systemd/system/multi-user.target.wants/docker.service
+     regexp: '^ExecStart='
+     line: ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --insecure-registry={{ registry_url }}
+   register: insecure_option
+
+ - name: restart docker
+   systemd:
+     name: docker
+     state: restarted
+     daemon_reload: yes
+   when: insecure_option.changed

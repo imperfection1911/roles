@@ -1,0 +1,8 @@
+---
+ - name: copy logrotate config
+   template:
+     src: docker-daemon
+     dest: /etc/logrotate.d/docker-daemon
+     owner: root
+     group: root
+     mode: '644'

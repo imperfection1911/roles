@@ -1,0 +1,20 @@
+---
+# зайти в редиску docker run -it --link redis_standalone:redis --rm redis redis-cli -h redis -p 6379
+# не надо в докере
+#listen_address: "{{ ansible_default_ipv4.address }}"
+run_in_docker: 1
+log_level: notice
+# сохранять ли данные на диск. Не выключать если это мастер.
+persistent: 1
+# настройки сохранения на диск. ключ - секунды, значение - кол-во измененнных ключей. 
+save_settings:
+  900: 1
+  300: 10
+  60: 10000
+password: 1qaz2wsx
+# роль в репликации. master/slave. Если переменная не объявлена, запустится в standalone режиме.
+# replication_role: master
+maxmemory: "{{ ((ansible_memtotal_mb) * 0.8 * 1024 * 1024)|round|int }}"
+#slave_ip: localhost
+#slave_port: 6379
+dump_dir: /var/lib/redis

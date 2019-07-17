@@ -1,0 +1,17 @@
+---
+ - name: create docker volume for mssql
+   docker_volume:
+     name: mssql
+
+ - name: start mssql
+   docker_container:
+     name: mssql
+     image: mcr.microsoft.com/mssql/server
+     volumes:
+       - mssql:/var/opt/mssql
+     published_ports:
+       - 1433:1433
+     env:
+       ACCEPT_EULA: Y
+       SA_PASSWORD: Passw0rd!
+       MSSQL_PID: Express

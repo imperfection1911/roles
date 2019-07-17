@@ -1,0 +1,42 @@
+---
+ - hosts: elk
+   user: root
+   become: yes
+   vars:
+     redis: 0
+     logstash: logstash
+   roles:
+     - elasticsearch
+     - kibana
+     - logstash
+     - filebeat
+ 
+ - hosts: redis_slave
+   user: root
+   become: yes
+   vars:
+     logstash: 10.53.53.90
+     docker:
+       - redis
+   roles: 
+     - filebeat
+
+ - hosts: db:redis_master
+   user: root
+   become: yes
+   vars:
+     logstash: 10.53.53.90
+     docker:
+       - redis
+       - mssql
+   roles:
+     - filebeat
+
+ - hosts: app
+   user: root
+   become: yes
+   vars:
+     logstash: 10.53.53.90
+     java_log: /var/log/java_example.log
+   roles:
+     - filebeat

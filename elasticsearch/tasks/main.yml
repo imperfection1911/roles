@@ -1,0 +1,53 @@
+---
+ - name: set vm.max_map_count
+   sysctl:
+     name: vm.max_map_count
+     value: 262144
+
+ - name: crete docker network
+   docker_network:
+     name: elk
+     driver: bridge
+
+ - name: create volume
+   docker_volume:
+     name: elasticsearch
+ 
+ #- name: create config folder
+ #  file:
+ #    path: /usr/share/elasticsearch/config/
+ #    state: directory
+ #    owner: root
+ #    group: root
+ #    mode: 0775
+
+ #- name: copy jvm settings
+ #  template:
+ #    src: jvm.options.j2
+ #    dest: /usr/share/elasticsearch/config/jvm.options
+ #    owner: root
+ #    group: root
+ #    mode: 0744
+
+ - name: deploy elasticsearch
+   docker_container:
+     name: elasticsearch
+     image: docker.elastic.co/elasticsearch/elasticsearch:6.6.2
+     #memory: 512M
+     env:
+       cluster.name: elastic
+       bootstrap.memory_lock: 'true'
+       ES_JAVA_OPTS: '-Xms{{ memory }}m -Xmx{{ memory }}m'
+     volumes:
+       - elasticsearch:/usr/share/elasticsearch/data
+       #- /usr/share/elasticsearch/config/jvm.options:/usr/share/elasticsearch/config/jvm.options 
+     networks:
+       - name: elk
+     published_ports:
+       - 9200:9200
+       - 9300:9300
+     ulimits:
+       - nproc:65536:65536
+       - nofile:65536:65536
+       - memlock:-1:-1
+     user: root

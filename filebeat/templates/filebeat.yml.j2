@@ -1,0 +1,37 @@
+filebeat.inputs:
+- type: log
+  paths:
+    - /var/log/messages
+  fields:
+    type: messages-log
+  fields_under_root: true
+{% if java_log is defined %}
+- type: log
+  paths:
+    - {{ java_log }}
+  multiline.pattern: '^[[:space:]]+(at|\.{3})\b|^Caused by:'
+  multiline.negate: false
+  multiline.match: after
+  fields:
+    type: java-log
+  fields_under_root: true
+{% endif %}
+{% if docker is defined %}
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      templates:
+        - condition.or:
+{% for image in docker %}
+            - contains.docker.container.image: {{ image }}
+{% endfor %}
+          config:
+            - type: docker
+              containers.ids:
+                - "${data.docker.container.id}"
+              fields:
+                type: "${data.docker.container.image}"
+              fields_under_root: true
+{% endif %}
+output.logstash:
+  hosts: ["{{ logstash }}:5044"]

@@ -1,0 +1,15 @@
+--- 
+ - hosts: stage2
+   user: eip
+   become: yes
+   become_user: root
+   vars:
+     registry_host: 10.28.101.24
+     registry_port: 8761
+     config_host: 10.28.101.24
+     config_port: 8888
+     instance_ip: 10.28.101.25
+     jmx_port: 8011
+     jmx_exporter_port: 8386     
+   roles:
+    - msgsender

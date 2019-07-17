@@ -1,0 +1,50 @@
+---
+ - name: create config folder
+   file:
+     path: /usr/share/filebeat
+     state: directory
+
+ - name: copy config
+   template:
+     src: filebeat.yml.j2
+     dest: /usr/share/filebeat/filebeat.yml
+   register: filebeat_config
+
+ - debug:
+     var: logstash
+ 
+ - debug:
+     var: redis
+
+ - name: deploy filebeat on elk node
+   docker_container:
+     name: filebeat
+     image: docker.elastic.co/beats/filebeat:6.6.2
+     user: root
+     networks:
+       - name: elk
+     volumes:
+       - /usr/share/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+       - /var/log/messages:/var/log/messages:ro
+       - /var/lib/docker:/var/lib/docker:ro
+       - /var/run/docker.sock:/var/run/docker.sock
+   when: logstash == 'logstash'
+
+ - name: deploy filebeat
+   docker_container:
+     name: filebeat
+     image: docker.elastic.co/beats/filebeat:6.6.2
+     user: root
+     volumes:
+       - /usr/share/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+       - /var/log/:/var/log/:ro
+       - /var/lib/docker:/var/lib/docker:ro
+       - /var/run/docker.sock:/var/run/docker.sock
+   when: logstash != 'logstash'
+
+ - name: restart filebeat on config change
+   docker_container:
+     name: filebeat
+     state: started
+     restart: yes
+   when: filebeat_config.changed

@@ -1,0 +1,39 @@
+{% if run_in_docker == 0 and listen_address is defined %}
+bind {{ listen_address }}
+{% endif %}
+port 6379
+tcp-backlog 50000
+timeout 0
+loglevel {{ log_level }}
+{% if persistent == 1 %}
+{% for key,value in save_settings.iteritems() %}
+save {{ key }} {{ value }}
+{% endfor %}
+rdbcompression yes
+{% if dump_dir is defined and run_in_docker == 0 %}
+dir {{ dump_dir }}
+{% endif %}
+{% endif %}
+{% if password is defined %}
+requirepass {{ password }}
+{% endif %}
+{% if replication_role is defined %}
+{% if replication_role == 'slave' %}
+slaveof {{ master_ip }} {{ master_port }}
+{% if password is defined %}
+masterauth {{ password }}
+{% endif %}
+#{% if run_in_docker == 1%}
+#slave-server-stale-data yes
+#{% endif %}
+repl-timeout 60
+{% if run_in_docker == 1 %}
+slave-announce-ip {{ slave_ip }}
+slave-announce-port {{ slave_port }}
+{% endif %}
+{% endif %}
+{% endif %}
+maxclients 128
+{% if run_in_docker == 0 %}
+maxmemory {{ maxmemory }}
+{% endif %}

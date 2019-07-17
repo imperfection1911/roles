@@ -1,0 +1,37 @@
+---
+ - name: create pipeline configuration directory
+   file:
+     path: /usr/share/logstash/pipeline
+     state: directory
+     owner: root
+     group: root
+     mode: 0775     
+
+ - name: synchronize pipeline configuration
+   synchronize:
+     src: pipeline
+     dest: /usr/share/logstash/
+   register: logstash_config
+ 
+ - name: deploy logstash
+   docker_container:
+     name: logstash
+     image: docker.elastic.co/logstash/logstash:6.6.2
+     env:
+       PIPELINE_WORKERS: "{{ ansible_processor_cores|int }}"
+       PIPELINE_BATCH_SIZE: 125
+       LOG_LEVEL: trace
+     networks:
+       - name: elk
+     published_ports:
+       - 5044:5044
+     volumes:
+       - /usr/share/logstash/pipeline:/usr/share/logstash/pipeline
+     user: root
+
+ - name: restart logstash on config change
+   docker_container:
+     name: logstash
+     state: started
+     restart: yes
+   when: logstash_config.changed

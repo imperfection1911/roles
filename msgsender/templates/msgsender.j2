@@ -1,0 +1,10 @@
+MSA_LOG_PATH=/var/log/services
+MSA_DISCOVERY_HOST_ADDRESS={{ registry_host }}
+MSA_INSTANCE_IP_ADDRESS={{ instance_ip }}
+MSA_PORT={{ msa_port }}
+MSA_DISCOVERY_PORT={{ msa_discovery_port }}
+{% if msgsender_mode == 'ha' %}
+MSA_DISCOVERY_PEER_HOST_ADDRESS={{ msa_peer_instance_ip }}
+MSA_DISCOVERY_PEER_PORT={{ msa_peer_port }}
+{% endif %}
+

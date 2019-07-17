@@ -1,0 +1,39 @@
+---
+users:
+  AZharov:
+    groups: wheel,developers
+    key: zharov.pub
+    uid: 1001
+  ABurov:
+    groups: developers
+    key: burov.pub
+    uid: 1002
+  OFedorova:
+    groups: developers
+    key: fedorova.pub
+    uid: 1003
+  EKovtunenko:
+    groups: developers,docker
+    key: kovtunenko.ppk
+    uid: 1004
+  AUsov:
+    groups: developers
+    key: usov.pub
+    uid: 1005
+  NMarushko:
+    groups: developers
+    key: marushko.pub
+    uid: 1006
+  Aaksenov:
+    groups: developers,wheel
+    key: aksenov.pub
+    uid: 1007
+  AKarpov:
+    groups: developers
+    key: akarpov.pub
+    uid: 1008
+  gitlab-runner:
+    groups: wheel,developers,docker
+    key: gitlab-runner.pub
+    uid: 1009
+  

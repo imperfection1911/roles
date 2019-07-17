@@ -1,0 +1,43 @@
+---
+ - name: update packages
+   yum:
+     name: "*"
+     state: latest
+
+ - name: install epel release
+   yum:
+     name: epel-release
+     state: present
+ 
+ - name: install packages
+   yum:
+     name: "{{ packages }}"
+     state: present
+
+ - name: install python packages
+   pip:
+     name: "{{ pip_packages }}"
+
+ - name: disable SElinux
+   selinux:
+     policy: targeted
+     state: permissive
+
+ - name: disable firewalld
+   systemd:
+     name: firewalld
+     state: stopped
+     masked: yes
+
+ - name: modify sysctl
+   sysctl:
+     name: "{{ item.key }}"
+     value: "{{ item.value }}"
+   with_dict: "{{ sysctl }}"
+ 
+ - name: modify pam_file_limits
+   pam_limits:
+     domain: '*'
+     limit_type: soft
+     limit_item: nofile
+     value: "{{ pam_file_limit }}"
