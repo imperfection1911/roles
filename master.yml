@@ -1,0 +1,8 @@
+---
+ - hosts: master
+   user: root
+   become: yes
+   vars:
+     postgres_role: master
+   roles:
+     - postgres 
